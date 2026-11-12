@@ -78,3 +78,5 @@ td.wrap{white-space:normal;min-width:180px;color:var(--mute);font-size:13px}
 .toast{position:fixed;inset-inline:16px;bottom:16px;max-width:520px;margin-inline:auto;background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;z-index:9}
 .toast.err{background:var(--bad);color:#fff}
 @media (max-width:560px){.bar{grid-template-columns:90px 1fr 54px}h1{font-size:18px}}
+
+.history-list{display:grid;gap:8px}.history-item{display:grid;gap:2px;padding:10px;border:1px solid var(--line);border-radius:8px}.history-item span{font-size:13px;color:var(--mute)}
