@@ -208,7 +208,7 @@
   function macroPick(part, s) {
     var out = '', label = '', L = s.length, list = (part.byLen[L] || []).map(function (e) { return [e, 'طول ' + L]; });
     (part.any || []).forEach(function (e) { list.push([e, 'هر طول']); });
-    list.forEach(function (x) { if (s.indexOf(x[0][0]) === 0) { out = x[0][1]; label = x[1] + ' + پیشوند ' + x[0][0]; } });
+    list.forEach(function (x) { if (s.slice(0, x[0][0].length).toUpperCase() === String(x[0][0]).toUpperCase()) { out = x[0][1]; label = x[1] + ' + پیشوند ' + x[0][0]; } });
     return { v: out, label: label };
   }
   /* خروجی خام، دقیقاً مثل دو تابع VBA */
