@@ -42,7 +42,7 @@
 
   <section class="card" id="testGenCard">
     <h2>۲. تولید شناسه مصنوعی تست</h2>
-    <p class="hint"><b>هشدار:</b> این شناسه‌ها فقط برای تست نرم‌افزار هستند؛ سریال واقعی PAX یا هیچ سازنده‌ای نیستند و با TEST- شروع می‌شوند.</p>
+    <p class="hint"><b>تولید مبتنی بر پچ:</b> شناسه مستقل با TEST- ساخته می‌شود. کنار آن، نمونه سریالِ مصنوعی با طول و پیشوند واقعیِ تعریف‌شده در پچ نمایش داده می‌شود تا موتور تشخیص قابل آزمون باشد. نمونه پچ نیز داده ساختگی است و نباید به‌عنوان سریال واقعی یا برای ثبت در شبکه استفاده شود.</p>
     <div class="row">
       <label>برند <input id="testBrand" type="text" value="PAX" maxlength="20"></label>
       <label>مدل <input id="testModel" type="text" value="S90" maxlength="20"></label>
@@ -50,7 +50,7 @@
       <label>شماره شروع <input id="testStart" type="number" min="1" max="99999999" value="1"></label>
       <button id="testGenerate" class="btn primary" type="button">تولید شناسه تست</button>
     </div>
-    <textarea id="testOutput" rows="5" readonly placeholder="شناسه‌های TEST در این قسمت نمایش داده می‌شوند."></textarea>
+    <textarea id="testOutput" rows="5" readonly placeholder="شناسه TEST و نمونه ساختاری منطبق با پچ در هر خط نمایش داده می‌شوند."></textarea>
     <div class="toolbar">
       <button id="testCopy" class="btn" type="button" disabled>کپی شناسه‌ها</button>
       <button id="testCsv" class="btn" type="button" disabled>خروجی CSV</button>
