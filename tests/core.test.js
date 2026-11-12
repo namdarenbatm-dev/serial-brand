@@ -3,23 +3,29 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const C = require('../core.js');
 
-test('generates explicitly marked TEST identifiers', () => {
-  assert.deepEqual(C.generateTestSerials('PAX', 'S90', 2, 1), [
-    'TEST-PAX-S90-000001',
-    'TEST-PAX-S90-000002'
-  ]);
+test('generates TEST IDs with serial fixtures accepted by the exact BrandPAX rules', () => {
+  const rows = C.generateTestSerials('PAX', 'S90', 2, 1);
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].testId, 'TEST-PAX-S90-00000001');
+  assert.notEqual(rows[0].testId, rows[1].testId);
+  for (const row of rows) {
+    assert.match(row.testId, /^TEST-/);
+    const detected = C.macroRaw(row.patchSerial);
+    assert.equal(detected.brand.toUpperCase(), 'PAX');
+    assert.equal(detected.model, 'S90');
+    assert.equal(row.patchSerial.length, row.length);
+    assert.ok(row.patchSerial.startsWith(row.prefix));
+  }
 });
 
-test('normalizes labels and pads sequence consistently', () => {
-  assert.deepEqual(C.generateTestSerials('pax tech', 's-90', 2, 12), [
-    'TEST-PAX-TECH-S-90-000012',
-    'TEST-PAX-TECH-S-90-000013'
-  ]);
+test('refuses to invent a brand when the patch only identifies the model', () => {
+  assert.throws(() => C.generateTestSerials('Newland', 'SP600', 2, 1), /برند/);
 });
 
-test('rejects invalid counts and unsafe empty labels', () => {
+test('rejects invalid counts and models absent from patch rules', () => {
   assert.throws(() => C.generateTestSerials('PAX', 'S90', 0, 1));
   assert.throws(() => C.generateTestSerials('', 'S90', 1, 1));
+  assert.throws(() => C.generateTestSerials('PAX', 'NOT-A-PATCH-MODEL', 1, 1));
   assert.throws(() => C.generateTestSerials('PAX', 'S90', 10001, 1));
 });
 
