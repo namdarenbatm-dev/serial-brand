@@ -418,21 +418,64 @@
     return '﻿' + [header].concat(rows).map(function (r) { return r.map(q).join(','); }).join('\r\n');
   }
 
-  /* ---------- شناسه مصنوعی تست؛ هرگز سریال واقعی سازنده نیست ---------- */
+  /* ---------- مولد داده تست مبتنی بر قواعد واقعی BrandPAX ---------- */
   function generateTestSerials(brand, model, count, start) {
-    function token(v, name) {
-      var s = String(v == null ? '' : v).trim().toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-      if (!s || s.length > 20) throw new Error(name + ' نامعتبر است.');
-      return s;
-    }
-    brand = token(brand, 'برند');
-    model = token(model, 'مدل');
+    function clean(v) { return String(v == null ? '' : v).trim(); }
+    var requestedBrand = clean(brand).toUpperCase();
+    var requestedModel = clean(model).toUpperCase();
+    var brandAliases = { PAX: 'Pax', VERIFONE: 'Verifone', NEWLAND: 'Newland' };
+    var expectedBrand = brandAliases[requestedBrand] || clean(brand);
     count = Number(count);
     start = start == null || start === '' ? 1 : Number(start);
+    if (!requestedBrand || !requestedModel) throw new Error('برند و مدل را مشخص کنید.');
     if (!Number.isInteger(count) || count < 1 || count > 10000) throw new Error('تعداد باید بین ۱ تا ۱۰٬۰۰۰ باشد.');
     if (!Number.isInteger(start) || start < 1 || start > 99999999 || start + count - 1 > 99999999) throw new Error('شماره شروع نامعتبر است.');
-    var width = Math.max(6, String(start + count - 1).length), out = [];
-    for (var i = 0; i < count; i++) out.push('TEST-' + brand + '-' + model + '-' + String(start + i).padStart(width, '0'));
+    if (!MACRO || !MACRO.model || !MACRO.model.byLen) throw new Error('قواعد پچ در دسترس نیست.');
+
+    var profiles = [], byLen = MACRO.model.byLen;
+    Object.keys(byLen).forEach(function (lenKey) {
+      var len = Number(lenKey), entries = byLen[lenKey] || [], seen = {};
+      entries.forEach(function (entry) {
+        var prefix = String(entry[0]), mappedModel = String(entry[1]);
+        if (mappedModel.toUpperCase() !== requestedModel || seen[prefix]) return;
+        seen[prefix] = true;
+        var suffixLen = len - prefix.length;
+        if (suffixLen < 1) return;
+        profiles.push({ length: len, prefix: prefix, suffixLength: suffixLen });
+      });
+    });
+    if (!profiles.length) throw new Error('در قواعد پچ برای مدل ' + requestedModel + ' الگوی تولید پیدا نشد.');
+
+    var valid = [], seenSamples = {};
+    profiles.forEach(function (p) {
+      var tail = 'A'.repeat(p.suffixLength), sample = p.prefix + tail, detected = macroRaw(sample);
+      if (detected.model.toUpperCase() === requestedModel &&
+          String(detected.brand || '').toUpperCase() === String(expectedBrand || '').toUpperCase()) {
+        valid.push(p);
+      }
+    });
+    if (!valid.length) {
+      var modelOnly = profiles.some(function (p) { return macroRaw(p.prefix + 'A'.repeat(p.suffixLength)).model.toUpperCase() === requestedModel; });
+      if (modelOnly) throw new Error('پچ مدل ' + requestedModel + ' را تشخیص می‌دهد، اما برند «' + clean(brand) + '» را برای این مدل از روی سریال تأیید نمی‌کند. تولید با برچسب برندِ حدسی انجام نشد.');
+      throw new Error('هیچ ترکیب برند/مدلی برای این انتخاب در قواعد پچ تأیید نشد.');
+    }
+
+    var out = [], attempts = 0, maxAttempts = count * valid.length * 4 + 100;
+    while (out.length < count && attempts < maxAttempts) {
+      var seq = start + out.length, p = valid[attempts % valid.length], suffix = seq.toString(36).toUpperCase();
+      attempts++;
+      if (suffix.length > p.suffixLength) continue;
+      var patchSerial = p.prefix + suffix.padStart(p.suffixLength, '0');
+      var detected = macroRaw(patchSerial);
+      if (detected.model.toUpperCase() !== requestedModel ||
+          String(detected.brand || '').toUpperCase() !== String(expectedBrand || '').toUpperCase() ||
+          seenSamples[patchSerial]) continue;
+      seenSamples[patchSerial] = true;
+      var testId = 'TEST-' + requestedBrand.replace(/[^A-Z0-9]+/g, '-') + '-' +
+        requestedModel.replace(/[^A-Z0-9]+/g, '-') + '-' + String(seq).padStart(8, '0');
+      out.push({ testId: testId, patchSerial: patchSerial, brand: requestedBrand, model: requestedModel, length: p.length, prefix: p.prefix });
+    }
+    if (out.length !== count) throw new Error('با ظرفیت قواعد انتخاب‌شده، تعداد درخواستی قابل تولید نیست.');
     return out;
   }
 
