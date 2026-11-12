@@ -152,6 +152,26 @@
   $('hdrChk').addEventListener('change', runFromTable);
   $('pasteGo').addEventListener('click', runFromPaste);
 
+  /* ---------- تولید شناسه مصنوعی تست ---------- */
+  var testIds = [];
+  $('testGenerate').addEventListener('click', function () {
+    try {
+      testIds = C.generateTestSerials($('testBrand').value, $('testModel').value, $('testCount').value, $('testStart').value);
+      $('testOutput').value = testIds.join('\\n');
+      $('testCopy').disabled = false; $('testCsv').disabled = false;
+      toast(testIds.length + ' شناسه مصنوعی TEST تولید شد؛ سریال واقعی نیست.');
+    } catch (e) { testIds = []; $('testOutput').value = ''; $('testCopy').disabled = true; $('testCsv').disabled = true; toast(e.message || String(e), true); }
+  });
+  $('testCopy').addEventListener('click', async function () {
+    if (!testIds.length) return;
+    try { await navigator.clipboard.writeText(testIds.join('\\n')); toast('شناسه‌های تست کپی شدند.'); }
+    catch (e) { toast('دسترسی کپی در این مرورگر ممکن نیست؛ متن را دستی انتخاب کنید.', true); }
+  });
+  $('testCsv').addEventListener('click', function () {
+    if (!testIds.length) return;
+    download('TEST-identifiers-' + stamp() + '.csv', C.toCsv(['شناسه مصنوعی تست'], testIds.map(function (x) { return [x]; })), 'text/csv;charset=utf-8');
+  });
+
   $('filters').addEventListener('click', function (e) { var b = e.target.closest('[data-f]'); if (!b) return; filter = b.dataset.f; shown = PAGE; renderFilters(); renderTable(); });
   $('q').addEventListener('input', debounce(function () { shown = PAGE; renderTable(); }, 150));
   $('more').addEventListener('click', function () { shown += PAGE; renderTable(); });
