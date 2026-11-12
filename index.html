@@ -40,8 +40,25 @@
     </details>
   </section>
 
+  <section class="card" id="testGenCard">
+    <h2>۲. تولید شناسه مصنوعی تست</h2>
+    <p class="hint"><b>هشدار:</b> این شناسه‌ها فقط برای تست نرم‌افزار هستند؛ سریال واقعی PAX یا هیچ سازنده‌ای نیستند و با TEST- شروع می‌شوند.</p>
+    <div class="row">
+      <label>برند <input id="testBrand" type="text" value="PAX" maxlength="20"></label>
+      <label>مدل <input id="testModel" type="text" value="S90" maxlength="20"></label>
+      <label>تعداد <input id="testCount" type="number" min="1" max="10000" value="2"></label>
+      <label>شماره شروع <input id="testStart" type="number" min="1" max="99999999" value="1"></label>
+      <button id="testGenerate" class="btn primary" type="button">تولید شناسه تست</button>
+    </div>
+    <textarea id="testOutput" rows="5" readonly placeholder="شناسه‌های TEST در این قسمت نمایش داده می‌شوند."></textarea>
+    <div class="toolbar">
+      <button id="testCopy" class="btn" type="button" disabled>کپی شناسه‌ها</button>
+      <button id="testCsv" class="btn" type="button" disabled>خروجی CSV</button>
+    </div>
+  </section>
+
   <section class="card" id="resCard" hidden>
-    <h2>۲. نتایج</h2>
+    <h2>۳. نتایج</h2>
     <div class="stats" id="stats"></div>
     <div id="models"></div>
     <div class="toolbar">
