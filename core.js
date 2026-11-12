@@ -427,8 +427,26 @@
     return '﻿' + [header].concat(rows).map(function (r) { return r.map(q).join(','); }).join('\r\n');
   }
 
+  /* ---------- شناسه مصنوعی تست؛ هرگز سریال واقعی سازنده نیست ---------- */
+  function generateTestSerials(brand, model, count, start) {
+    function token(v, name) {
+      var s = String(v == null ? '' : v).trim().toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      if (!s || s.length > 20) throw new Error(name + ' نامعتبر است.');
+      return s;
+    }
+    brand = token(brand, 'برند');
+    model = token(model, 'مدل');
+    count = Number(count);
+    start = start == null || start === '' ? 1 : Number(start);
+    if (!Number.isInteger(count) || count < 1 || count > 10000) throw new Error('تعداد باید بین ۱ تا ۱۰٬۰۰۰ باشد.');
+    if (!Number.isInteger(start) || start < 1 || start > 99999999 || start + count - 1 > 99999999) throw new Error('شماره شروع نامعتبر است.');
+    var width = Math.max(6, String(start + count - 1).length), out = [];
+    for (var i = 0; i < count; i++) out.push('TEST-' + brand + '-' + model + '-' + String(start + i).padStart(width, '0'));
+    return out;
+  }
+
   var api = {
-    normalizeSerial: normalizeSerial, isSerialLike: isSerialLike, openTable: openTable, parseXlsx: parseXlsx, parseCsv: parseCsv,
+    normalizeSerial: normalizeSerial, isSerialLike: isSerialLike, generateTestSerials: generateTestSerials, openTable: openTable, parseXlsx: parseXlsx, parseCsv: parseCsv,
     detectColumn: detectColumn, macroRaw: macroRaw, macroDetect: macroDetect, MACRO: MACRO, compileRules: compileRules, matchSerial: matchSerial, analyze: analyze, rulesFromRows: rulesFromRows,
     buildXlsx: buildXlsx, resultSheets: resultSheets, rulesSheet: rulesSheet, toCsv: toCsv, colName: colName, STATUS_FA: STATUS_FA, TYPE_FA: TYPE_FA
   };
