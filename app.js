@@ -174,19 +174,19 @@
   $('testGenerate').addEventListener('click', function () {
     try {
       testIds = C.generateTestSerials($('testBrand').value, $('testModel').value, $('testCount').value, $('testStart').value);
-      $('testOutput').value = testIds.join('\\n');
+      $('testOutput').value = testIds.map(function (x) { return x.testId + '\\t' + x.patchSerial; }).join('\\n');
       $('testCopy').disabled = false; $('testCsv').disabled = false;
       toast(testIds.length + ' شناسه مصنوعی TEST تولید شد؛ سریال واقعی نیست.');
     } catch (e) { testIds = []; $('testOutput').value = ''; $('testCopy').disabled = true; $('testCsv').disabled = true; toast(e.message || String(e), true); }
   });
   $('testCopy').addEventListener('click', async function () {
     if (!testIds.length) return;
-    try { await navigator.clipboard.writeText(testIds.join('\\n')); toast('شناسه‌های تست کپی شدند.'); }
+    try { await navigator.clipboard.writeText(testIds.map(function (x) { return x.testId + '\\t' + x.patchSerial; }).join('\\n')); toast('شناسه‌های تست کپی شدند.'); }
     catch (e) { toast('دسترسی کپی در این مرورگر ممکن نیست؛ متن را دستی انتخاب کنید.', true); }
   });
   $('testCsv').addEventListener('click', function () {
     if (!testIds.length) return;
-    download('TEST-identifiers-' + stamp() + '.csv', C.toCsv(['شناسه مصنوعی تست'], testIds.map(function (x) { return [x]; })), 'text/csv;charset=utf-8');
+    download('TEST-identifiers-' + stamp() + '.csv', C.toCsv(['شناسه مستقل تست (غیرواقعی)', 'نمونه سریال مطابق قواعد پچ', 'برند', 'مدل', 'طول پچ', 'پیشوند پچ'], testIds.map(function (x) { return [x.testId, x.patchSerial, x.brand, x.model, x.length, x.prefix]; })), 'text/csv;charset=utf-8');
   });
 
   $('clearHistory').addEventListener('click', function () { if (!confirm('تاریخچه استعلام‌ها پاک شود؟')) return; try { localStorage.removeItem(HKEY); } catch (e) {} renderHistory(); toast('تاریخچه پاک شد.'); });
