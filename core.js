@@ -208,31 +208,22 @@
   function macroPick(part, s) {
     var out = '', label = '', L = s.length, list = (part.byLen[L] || []).map(function (e) { return [e, 'طول ' + L]; });
     (part.any || []).forEach(function (e) { list.push([e, 'هر طول']); });
-    list.forEach(function (x) { if (s.slice(0, x[0][0].length).toUpperCase() === String(x[0][0]).toUpperCase()) { out = x[0][1]; label = x[1] + ' + پیشوند ' + x[0][0]; } });
+    /* VBA uses exact text comparisons; case and condition order are preserved. */
+    list.forEach(function (x) { if (s.slice(0, x[0][0].length) === String(x[0][0])) { out = x[0][1]; label = x[1] + ' + پیشوند ' + x[0][0]; } });
     return { v: out, label: label };
   }
-  /* خروجی خام، دقیقاً مثل دو تابع VBA */
-  function macroRaw(s) {
+  /* Direct VBA behavior: trim outer whitespace only; no normalization or inferred values. */
+  function macroRaw(value) {
     if (!MACRO) return { brand: '', model: '' };
+    var s = String(value == null ? '' : value).trim();
     return { brand: macroPick(MACRO.brand, s).v, model: macroPick(MACRO.model, s).v };
   }
-  function macroDetect(s) {
+  function macroDetect(value) {
     if (!MACRO) return null;
-    var b = macroPick(MACRO.brand, s), m = macroPick(MACRO.model, s), note = '', t;
-    if (!b.v && !m.v && /^\d+$/.test(s) && (s.length === 7 || s.length === 9)) {
-      t = '0' + s; var b2 = macroPick(MACRO.brand, t), m2 = macroPick(MACRO.model, t);
-      if (b2.v || m2.v) { b = b2; m = m2; note = ' (فرض: صفر ابتدای سریال در Excel حذف شده)'; }
-    }
+    var s = String(value == null ? '' : value).trim();
+    var b = macroPick(MACRO.brand, s), m = macroPick(MACRO.model, s);
     if (!b.v && !m.v) return null;
-    var brand = b.v, model = m.v, inferred = '';
-    if (model === 'Verifone') {
-      if (!brand) brand = 'Verifone';
-      else if (brand !== 'Verifone') inferred = ' · ⚠ در پچ: برند ' + brand + ' ولی مدل Verifone (ناسازگار)';
-      model = '';
-    }
-    if (!brand && model && MODEL_BRAND[model]) { brand = MODEL_BRAND[model]; inferred = ' · برند از روی مدل'; }
-    brand = brand === 'Pax' ? 'PAX' : brand;
-    return { brand: brand, model: model, rule: 'پچ: ' + (m.label || b.label) + inferred + note };
+    return { brand: b.v === 'Pax' ? 'PAX' : b.v, model: m.v, rule: 'پچ VBA: ' + [b.label, m.label].filter(Boolean).join('؛ ') };
   }
 
   /* ---------- قانون‌ها ---------- */
