@@ -14,6 +14,23 @@
   }
   function saveRules() { try { localStorage.setItem(KEY, JSON.stringify(rules)); } catch (e) {} }
 
+  var HKEY = 'sbd.history.v1', HISTORY_LIMIT = 30;
+  function loadHistory() { try { var x = JSON.parse(localStorage.getItem(HKEY) || '[]'); return Array.isArray(x) ? x : []; } catch (e) { return []; } }
+  function saveHistory(x) { try { localStorage.setItem(HKEY, JSON.stringify(x.slice(0, HISTORY_LIMIT))); } catch (e) { toast('فضای ذخیره‌سازی مرورگر کافی نیست؛ تاریخچه ذخیره نشد.', true); } }
+  function recordHistory(summary) {
+    var h = loadHistory();
+    h.unshift({ at: new Date().toISOString(), total: summary.total, ok: summary.ok, partial: summary.partial, unknown: summary.unknown, invalid: summary.invalid, conflict: summary.conflict, dup: summary.dup });
+    saveHistory(h); renderHistory();
+  }
+  function renderHistory() {
+    var el = $('historyList'); if (!el) return;
+    var h = loadHistory();
+    el.innerHTML = h.length ? h.map(function (x) {
+      var d = new Date(x.at), date = isNaN(d.getTime()) ? 'زمان نامشخص' : d.toLocaleString('fa-IR');
+      return '<div class="history-item"><b>' + esc(date) + '</b><span>کل: ' + nf(x.total) + ' · شناسایی: ' + nf(x.ok) + ' · ناشناخته: ' + nf(x.unknown) + ' · نامعتبر: ' + nf(x.invalid) + ' · تداخل: ' + nf(x.conflict) + ' · تکراری: ' + nf(x.dup) + '</span></div>';
+    }).join('') : '<p class="hint">هنوز استعلامی ثبت نشده است.</p>';
+  }
+
   /* ---------- ابزار ---------- */
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function nf(n) { return Number(n).toLocaleString('fa-IR'); }
@@ -73,7 +90,7 @@
     shown = PAGE;
     if (!res.summary.total) { $('resCard').hidden = true; toast('سریالی پیدا نشد. ستون یا ردیف عنوان را بررسی کنید.', true); return; }
     $('resCard').hidden = false;
-    renderStats(); renderFilters(); renderTable(); renderUnknown();
+    renderStats(); renderFilters(); renderTable(); renderUnknown(); recordHistory(res.summary);
   }
   function renderStats() {
     var s = res.summary;
@@ -172,6 +189,7 @@
     download('TEST-identifiers-' + stamp() + '.csv', C.toCsv(['شناسه مصنوعی تست'], testIds.map(function (x) { return [x]; })), 'text/csv;charset=utf-8');
   });
 
+  $('clearHistory').addEventListener('click', function () { if (!confirm('تاریخچه استعلام‌ها پاک شود؟')) return; try { localStorage.removeItem(HKEY); } catch (e) {} renderHistory(); toast('تاریخچه پاک شد.'); });
   $('filters').addEventListener('click', function (e) { var b = e.target.closest('[data-f]'); if (!b) return; filter = b.dataset.f; shown = PAGE; renderFilters(); renderTable(); });
   $('q').addEventListener('input', debounce(function () { shown = PAGE; renderTable(); }, 150));
   $('more').addEventListener('click', function () { shown += PAGE; renderTable(); });
@@ -250,4 +268,5 @@
   $('macroChk').addEventListener('change', function () { try { localStorage.setItem(MKEY, this.checked ? '1' : '0'); } catch (e) {} if (serials.length) run(); });
   renderMacroTable();
   renderRules();
+  renderHistory();
 })();
