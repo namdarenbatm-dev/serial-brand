@@ -1,5 +1,5 @@
 /* Service worker: کش اولیه + اول-کش (cache-first) تا برنامه آفلاین کار کند. */
-var CACHE = 'sbd-v2';
+var CACHE = 'sbd-v3';
 var ASSETS = ['./', 'index.html', 'style.css', 'macro-data.js', 'core.js', 'app.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-512-maskable.png'];
 
 self.addEventListener('install', function (e) {
