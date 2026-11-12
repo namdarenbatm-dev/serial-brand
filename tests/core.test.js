@@ -60,3 +60,26 @@ test('reports overlapping custom rules as a conflict and selects the stronger pr
   assert.equal(result.rows[0].status, 'conflict');
   assert.equal(result.summary.conflict, 1);
 });
+
+
+test('matches the BrandPAX VBA serial functions exactly (length, prefix, order)', () => {
+  assert.deepEqual(C.macroRaw('30ABCDE'), { brand: 'Pax', model: 'S90' });
+  assert.deepEqual(C.macroRaw('2KABCDE'), { brand: '', model: 'S80' });
+  assert.deepEqual(C.macroRaw('2kABCDE'), { brand: '', model: '' });
+  assert.deepEqual(C.macroRaw('0800123456'), { brand: 'Pax', model: 'Q80' });
+  assert.deepEqual(C.macroRaw('51000000000000000'), { brand: '', model: 'D210' });
+  assert.deepEqual(C.macroRaw('20123456789'), { brand: 'Verifone', model: 'Verifone' });
+});
+
+test('does not infer a missing brand or model beyond the VBA patch', () => {
+  const result = C.analyze(['51000000000000000'], []);
+  assert.equal(result.rows[0].brand, '');
+  assert.equal(result.rows[0].model, 'D210');
+  assert.equal(result.rows[0].status, 'ok');
+});
+
+test('does not uppercase or strip punctuation before exact VBA matching', () => {
+  assert.equal(C.macroDetect('2kABCDE'), null);
+  assert.equal(C.macroDetect('2K-ABCDE'), null);
+  assert.equal(C.macroDetect(' 30ABCDE ' ).model, 'S90');
+});
