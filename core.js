@@ -278,7 +278,7 @@
       if (!/^[A-Z0-9]{4,32}$/.test(s)) { row.status = 'invalid'; sum.invalid++; }
       else {
         if (seen[s]) { row.dup = true; sum.dup++; } seen[s] = 1;
-        var m = matchSerial(s, compiled), d = (!m && opts.macro !== false) ? macroDetect(s) : null;
+        var m = matchSerial(s, compiled), d = (!m && opts.macro !== false) ? macroDetect(String(raw)) : null;
         if (d) {
           row.brand = d.brand; row.model = d.model; row.rule = d.rule;
           row.status = d.model ? 'ok' : 'partial'; sum[row.status]++;
