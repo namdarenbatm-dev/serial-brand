@@ -23,9 +23,9 @@ test('rejects invalid counts and unsafe empty labels', () => {
   assert.throws(() => C.generateTestSerials('PAX', 'S90', 10001, 1));
 });
 
-test('matches macro prefixes without case sensitivity', () => {
-  const result = C.macroDetect('2k12345');
-  assert.equal(result && result.model, 'S80');
+test('preserves case-sensitive matching from the BrandPAX VBA patch', () => {
+  assert.equal(C.macroDetect('2K12345').model, 'S80');
+  assert.equal(C.macroDetect('2k12345'), null);
 });
 
 
@@ -80,6 +80,8 @@ test('does not infer a missing brand or model beyond the VBA patch', () => {
 
 test('does not uppercase or strip punctuation before exact VBA matching', () => {
   assert.equal(C.macroDetect('2kABCDE'), null);
-  assert.equal(C.macroDetect('2K-ABCDE'), null);
+  assert.equal(C.macroDetect('2K-ABCDE').model, 'S80');
+  assert.equal(C.macroDetect('2k-ABCDE').brand, 'PAX');
+  assert.equal(C.macroDetect('2k-ABCDE').model, '');
   assert.equal(C.macroDetect(' 30ABCDE ' ).model, 'S90');
 });
