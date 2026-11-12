@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تشخیص برند سریال</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>تشخیص برند و مدل از روی سریال</h1>
+    <p class="sub">فایل اکسل یا CSV سریال‌ها را بدهید؛ برند و مدل هر کارتخوان بر اساس قوانین شما تشخیص داده می‌شود. همه‌چیز روی همین دستگاه پردازش می‌شود و چیزی ارسال نمی‌شود.</p>
+  </div>
+  <div class="chips"><span id="netChip" class="chip">آنلاین</span><button id="installBtn" class="btn" hidden>نصب برنامه</button></div>
+</header>
+
+<main>
+  <section class="card" id="inputCard">
+    <h2>۱. ورود سریال‌ها</h2>
+    <label class="drop" id="drop" tabindex="0">
+      <strong>فایل .xlsx یا .csv را اینجا رها کنید</strong>
+      <span>یا برای انتخاب فایل کلیک کنید</span>
+      <input type="file" id="file" accept=".xlsx,.xlsm,.csv,.tsv,.txt" hidden>
+    </label>
+    <div class="row" id="pickRow" hidden>
+      <label>شیت <select id="sheetSel"></select></label>
+      <label>ستون سریال <select id="colSel"></select></label>
+      <label class="chk"><input type="checkbox" id="hdrChk"> ردیف اول عنوان است</label>
+    </div>
+    <p class="hint" id="fileInfo"></p>
+    <details>
+      <summary>یا سریال‌ها را مستقیم بچسبانید (هر خط یک سریال)</summary>
+      <textarea id="paste" rows="5" placeholder="2331439294&#10;2337606307"></textarea>
+      <button id="pasteGo" class="btn">تحلیل</button>
+    </details>
+  </section>
+
+  <section class="card" id="resCard" hidden>
+    <h2>۲. نتایج</h2>
+    <div class="stats" id="stats"></div>
+    <div id="models"></div>
+    <div class="toolbar">
+      <div class="filters" id="filters"></div>
+      <input type="search" id="q" placeholder="جستجو در سریال، برند، مدل…">
+      <button id="expXlsx" class="btn primary">خروجی Excel</button>
+      <button id="expCsv" class="btn">خروجی CSV</button>
+    </div>
+    <div class="tbl"><table id="resTbl"><thead><tr><th>#</th><th>سریال</th><th>برند</th><th>مدل</th><th>وضعیت</th><th>قانون</th></tr></thead><tbody></tbody></table></div>
+    <div class="pager"><button id="more" class="btn" hidden>نمایش بیشتر</button><span id="pageInfo" class="hint"></span></div>
+    <div id="unkBox" hidden>
+      <h3>پیشوندهای شناسایی‌نشده</h3>
+      <p class="hint">پرتکرارترین ۳ رقم اول سریال‌های ناشناخته. با «ساخت قانون» یک قانون پیشوندی از آن بسازید و برند و مدل را بنویسید.</p>
+      <div id="unk" class="unk"></div>
+    </div>
+  </section>
+
+  <section class="card" id="rulesCard">
+    <h2>قوانین تشخیص</h2>
+    <label class="chk macro"><input type="checkbox" id="macroChk" checked> استفاده از قوانین پچ <b>BrandPAX.xlam</b> (بر اساس «طول سریال + ۲ کاراکتر اول»)</label>
+    <p class="hint">اگر سریالی با قانون‌های خودتان (جدول پایین) جور نشود، قوانین پچ اعمال می‌شود. قانون‌های خودتان همیشه اولویت دارند.</p>
+    <details id="macroDet"><summary>نمایش قوانین داخلی پچ</summary><div class="tbl"><table id="macroTbl"><thead><tr><th>طول</th><th>مدل</th><th>پیشوندها</th></tr></thead><tbody></tbody></table></div></details>
+    <h3>قوانین شخصی</h3>
+    <p class="hint">اولویت: «رنج» از «پیشوند» قوی‌تر است، پیشوند بلندتر از کوتاه‌تر، و «الگو (regex)» ضعیف‌ترین است. اگر یک سریال با چند قانونِ متفاوت جور شود، وضعیت «تداخل» می‌گیرد. قانون اولِ فهرست بر اساس همین اولویت انتخاب می‌شود.</p>
+    <div class="tbl"><table id="rulesTbl"><thead><tr><th></th><th>برند</th><th>مدل</th><th>نوع</th><th>از / پیشوند / الگو</th><th>تا</th><th>طول</th><th>توضیح</th><th></th></tr></thead><tbody></tbody></table></div>
+    <div class="toolbar">
+      <button id="addRule" class="btn primary">+ قانون جدید</button>
+      <button id="impRules" class="btn">وارد کردن قوانین از Excel/CSV</button>
+      <input type="file" id="rulesFile" accept=".xlsx,.xlsm,.csv,.tsv,.txt" hidden>
+      <button id="expRules" class="btn">ذخیره قوانین (Excel)</button>
+      <button id="resetRules" class="btn danger">بازنشانی</button>
+    </div>
+    <p class="hint">فایل قوانین ستون‌های «برند، مدل، نوع، از/پیشوند، تا، طول، توضیح» دارد؛ همان فایلی که «ذخیره قوانین» می‌دهد. قوانین فقط در مرورگر همین دستگاه ذخیره می‌شوند.</p>
+  </section>
+</main>
+<div id="toast" class="toast" hidden></div>
+<script src="macro-data.js"></script>
+<script src="core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
